@@ -1,45 +1,42 @@
 # Liquidate the Loans!
 
-## A Take-Home Exercise for Dharma Engineering
+## Installation 
+1. Navigate to the target directory in the terminal and run the following command `https://github.com/atrivedi1/get_liquidatable_loan_algo.git`
+2. In the `getLiqidatableLoans` folder, run:
+  - `npm install`
+  - `npm run test`
 
-Dharma is a place where people lend and borrow cryptocurrency. That means, people can borrow one cryptocurrency (for example, DAI stablecoin, or ETH), while putting up another currency as collateral.
+## Implementation
+As it pertains to my v1 implementation of the `getLiquidatableLoans` function, there are a few things worth calling out: 
 
-In Dharma, all loans are overcollateralized, which means that the value of the collateral in USD is greater than the value of the principal in USD when the loan is filled.
+1. I assumed that the data provided was merely sample data, and that the implementation of `getLiquidatableLoans` would ultimately need to handle:
+ - Much larger data sets
+ - Defaulted Loans
+ 
+2. I assumed that the data in the `loans.json` and `eth-prices.json` files would always be sorted in decesending order. 
 
-However, we know that cryptocurrency prices can be volatile -- with prices dropping multiple percentages in a day!
+3. Given #1 and #2, I decided to leverage a binary search algorithm twice in my implementation: first, to identify the price of ETH at a given point in time; and second, to determine which loans, if any, are in default (based on the given time)
 
-That means that the value of collateral for a given loan can sometimes drop to lower than the value of the principal. In this case we want to perform something called a "liquidation", where the collateral is sold off to cover this difference.
+## Test
 
-Each loan also has a duration (e.g. 90 days), and are past due (and hence liquidatable) if they have been outstanding for longer than that duration.
+To validate my implementation I added an additional loan object to the end of `loans.json` with a `filledAt` value ~90 days before the first timestamp in `eth-prices.json` and created the following tests:
 
-There are three files in this repo:
+1. Confirm that the `getLiquidatableLoans` function returns an array of length 7 with the given sample input: 1558650159442
 
-eth-price.json
-- This file has all of the ETH price changes for just over one day
+2. Confirm that the `getLiquidatableLoans` function returns an array of length 8 when the given time input is equal to the FIRST timestamp in the `eth-prices.json` file - meaning that the result should include a defaulted loan
 
-loans.json
-- This file has an array of loans, including the principal amount, collateral amount, principal token ID, and collateral token ID
+3. Confirm that the `getLiquidatableLoans` function returns an array of length 7 when the given time input is equal to the LAST timestamp in the that the `getLiquidatableLoans` function returns an array of length 7 file (to ensure that the binary search functionality works at the extremes of the provided dataset)
 
-tokens.json
-- This file associates tokens with token IDs.
+4. Confirm that that the `getLiquidatableLoans` function returns an empty array when the given time input is OUTSIDE of the date range in the `eth-prices.json` file. 
 
-### Requirements
 
-Write a function, preferrably in JavaScript if you can (but something like Python, Ruby, Java, etc. if you can't), that can take in a date, and return the IDs of loans were liquidatable at that date.
+## Outstanding Items
 
-Note: Assume that DAI and USDC are both worth $1.
+If I had more time, I would refector my binary search implementation to address:
 
-For example:
+1. Readability - for v1, I abstracted out the binary search logic such that I can leverage it to both find defaulted loans AND the price of ETH at a given point in time. However in doing so, the code is a little harder to reason about. 
 
-```
-const exampleDate = new Date(1558650159442);
-// => Thu May 23 2019 15:22:39 GMT-0700 (Pacific Daylight Time);
+2. Conciseness - Right now I have some verbose MVP logic to handle edge cases (see note on line 84 of `getLiquidatableLoans/main.js`). 
 
-getLiquidatableLoans(exampleDate);
-=> [18, 22, 23, 24]
-```
 
-This will require reading in each of the three files, and finding which loans have a collateral amount that is worth less than the principal amount.
-
-Please try and include some tests. An example repo is included.
 
